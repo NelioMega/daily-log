@@ -30,6 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Décalage aléatoire
+        if: github.event_name == 'schedule'
         run: sleep $(( RANDOM % 600 ))
 
       - name: Identité git
