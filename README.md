@@ -2,4 +2,12 @@
 
 Petit journal alimenté automatiquement une fois par jour.
 
-Voir [SETUP.md](SETUP.md) pour l'installation.
+| | |
+|---|---|
+| Dernière entrée | `2026-08-23 09:50 UTC` |
+| Entrées au total | **1** |
+| Jours couverts | **1** |
+
+Les entrées vivent dans [`logs/`](logs/), un fichier par mois. Installation : [SETUP.md](SETUP.md).
+
+<sub>Généré par [`.github/workflows/daily.yml`](.github/workflows/daily.yml).</sub>
