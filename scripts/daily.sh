@@ -39,7 +39,7 @@ for i in $(seq 1 "$n"); do
     echo "| Entrées au total | **$total** |"
     echo "| Jours couverts | **$days** |"
     echo
-    echo "Les entrées vivent dans [\`logs/\`](logs/), un fichier par mois."
+    echo "Les entrées vivent dans [\`logs/\`](logs/), un fichier par mois. Installation : [SETUP.md](SETUP.md)."
     echo
     echo "<sub>Généré par [\`.github/workflows/daily.yml\`](.github/workflows/daily.yml).</sub>"
   } > README.md
