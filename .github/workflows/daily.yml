@@ -1,0 +1,51 @@
+name: Contribution quotidienne
+
+on:
+  schedule:
+    # 09:23 UTC tous les jours. GitHub décale souvent de 5 à 40 min : c'est normal.
+    - cron: "23 9 * * *"
+  workflow_dispatch:
+    inputs:
+      commits:
+        description: "Nombre de commits à forcer (vide = aléatoire)"
+        required: false
+        default: ""
+
+concurrency:
+  group: daily-contribution
+  cancel-in-progress: false
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+        with:
+          # Le PAT est indispensable : avec le GITHUB_TOKEN par défaut, les commits
+          # sont attribués à github-actions[bot] et ne comptent PAS comme
+          # contributions — et le cron s'auto-désactive après 60 jours.
+          token: ${{ secrets.DAILY_PAT }}
+          fetch-depth: 0
+
+      - name: Décalage aléatoire
+        run: sleep $(( RANDOM % 600 ))
+
+      - name: Identité git
+        run: |
+          git config user.name  "${{ vars.GIT_USER_NAME  || 'Nélio Prodhomme' }}"
+          git config user.email "${{ vars.GIT_USER_EMAIL || 'nelioprodhomme@gmail.com' }}"
+
+      - name: Générer les commits
+        env:
+          MIN_COMMITS: ${{ vars.MIN_COMMITS || '1' }}
+          MAX_COMMITS: ${{ vars.MAX_COMMITS || '3' }}
+        run: |
+          if [ -n "${{ inputs.commits }}" ]; then
+            export MIN_COMMITS="${{ inputs.commits }}"
+            export MAX_COMMITS="${{ inputs.commits }}"
+          fi
+          bash scripts/daily.sh
+
+      - name: Pousser
+        run: git push origin HEAD:${{ github.event.repository.default_branch }}
