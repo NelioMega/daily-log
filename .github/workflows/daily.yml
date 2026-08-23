@@ -22,10 +22,11 @@ jobs:
       - name: Récupérer le dépôt
         uses: actions/checkout@v4
         with:
-          # Le PAT est indispensable : avec le GITHUB_TOKEN par défaut, les commits
-          # sont attribués à github-actions[bot] et ne comptent PAS comme
-          # contributions — et le cron s'auto-désactive après 60 jours.
-          token: ${{ secrets.DAILY_PAT }}
+          # Sans secret DAILY_PAT, on retombe sur le jeton intégré : les commits
+          # comptent quand même (c'est l'e-mail de l'auteur qui décide, pas le
+          # pousseur). Le PAT sert à empêcher GitHub de désactiver le cron après
+          # 60 jours sans activité humaine sur le dépôt.
+          token: ${{ secrets.DAILY_PAT || github.token }}
           fetch-depth: 0
 
       - name: Décalage aléatoire

@@ -1,72 +1,92 @@
-# Installation (5 minutes, une seule fois)
+# Installation
 
-## 1. Créer le dépôt et le pousser
+## Déjà fait ✅
 
-```
-gh repo create daily-log --public --source=. --remote=origin --push
-```
+- Dépôt créé et poussé : https://github.com/NelioMega/daily-log (public, branche `main`)
+- E-mail d'auteur `nelioprodhomme@gmail.com` vérifié comme rattaché au compte `NelioMega`
+- Workflow planifié tous les jours à 09h23 UTC, opérationnel sans aucun jeton
 
-> Dépôt **public** de préférence. En privé, il faut activer
-> *Settings → Public profile → Contributions → Include private contributions on my profile*,
-> sinon le graphe reste gris.
+Le graphe se remplit déjà. Ce qui suit est **optionnel**.
 
-## 2. Créer le jeton (PAT)
+## Optionnel : le PAT (pour que ça dure au-delà de 60 jours)
+
+GitHub désactive les workflows planifiés d'un dépôt resté **60 jours sans activité
+humaine**. Les pushs faits par le jeton intégré (`GITHUB_TOKEN`) ne comptent pas
+comme activité humaine — ceux faits avec un PAT personnel, si. Sans PAT, il faudra
+donc réactiver le workflow à la main environ tous les deux mois (GitHub envoie un
+e-mail d'avertissement avant).
 
 À faire toi-même sur https://github.com/settings/personal-access-tokens :
 
-- **Fine-grained token**, expiration la plus longue possible (à renouveler à l'échéance)
+- **Fine-grained token**, expiration la plus longue possible
 - *Repository access* → **Only select repositories** → `daily-log`
 - *Permissions → Repository permissions → Contents* → **Read and write**
 
-## 3. Enregistrer le jeton comme secret
+Puis colle le jeton quand cette commande le demande :
 
 ```
 gh secret set DAILY_PAT --repo NelioMega/daily-log
 ```
 
-La commande demande le jeton en entrée : colle-le, il n'est jamais écrit sur le disque.
+Aucune autre modification n'est nécessaire : le workflow détecte le secret et
+l'utilise automatiquement s'il existe.
 
-## 4. Vérifier tout de suite
+## Ce qui fait qu'un commit compte comme contribution
+
+Trois conditions, toutes remplies ici :
+
+1. L'e-mail de l'auteur du commit est rattaché **et vérifié** sur le compte GitHub.
+2. Le commit est sur la **branche par défaut** du dépôt (`main`).
+3. Le dépôt appartient au compte et n'est pas un fork.
+
+L'identité de celui qui *pousse* n'entre pas en jeu. Pour vérifier à tout moment
+que le lien commit → compte est bien établi :
+
+```
+gh api repos/NelioMega/daily-log/commits --jq '.[0] | "\(.commit.author.email) -> \(.author.login // "AUCUN LIEN")"'
+```
+
+## Réglages
+
+```
+gh variable set MAX_COMMITS --repo NelioMega/daily-log --body 4
+```
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `MIN_COMMITS` | `1` | Nombre minimum de commits par jour |
+| `MAX_COMMITS` | `3` | Nombre maximum de commits par jour |
+| `GIT_USER_NAME` | `Nélio Prodhomme` | Nom de l'auteur |
+| `GIT_USER_EMAIL` | `nelioprodhomme@gmail.com` | E-mail de l'auteur (doit rester vérifié) |
+
+L'heure se change dans le `cron` de `.github/workflows/daily.yml`, en **UTC**
+(09h23 UTC = 11h23 à Montpellier en été, 10h23 en hiver).
+
+## Commandes utiles
+
+Lancer une exécution immédiate :
 
 ```
 gh workflow run "Contribution quotidienne" --repo NelioMega/daily-log -f commits=1
 ```
 
-Puis, après ~30 s :
+Voir les dernières exécutions :
 
 ```
-gh run list --repo NelioMega/daily-log --limit 3
+gh run list --repo NelioMega/daily-log --limit 5
 ```
 
-## Réglages optionnels
+Consulter le journal d'une exécution qui a échoué :
 
 ```
-gh variable set MIN_COMMITS --repo NelioMega/daily-log --body 1
-gh variable set MAX_COMMITS --repo NelioMega/daily-log --body 4
-gh variable set GIT_USER_EMAIL --repo NelioMega/daily-log --body ton@email.com
+gh run view --repo NelioMega/daily-log --log-failed
 ```
 
-L'heure se change dans le `cron` de `.github/workflows/daily.yml` (en **UTC**).
-
-## Pourquoi ça compte vraiment comme une contribution
-
-Quatre conditions, toutes remplies ici :
-
-1. L'e-mail de l'auteur du commit est rattaché et vérifié sur ton compte GitHub.
-2. Le commit est sur la **branche par défaut** du dépôt.
-3. Le dépôt t'appartient et n'est pas un fork.
-4. Le push est fait avec **ton** PAT, pas avec le `GITHUB_TOKEN` par défaut —
-   sinon l'auteur devient `github-actions[bot]` et rien ne compte.
-
-Bonus du point 4 : GitHub désactive les workflows planifiés après 60 jours
-*sans activité utilisateur*. Un push par PAT compte comme activité utilisateur,
-donc le cron ne s'éteint jamais tout seul.
-
-## Si ça ne marche pas
+## Dépannage
 
 | Symptôme | Cause quasi certaine |
 |---|---|
-| Le run est vert mais le graphe reste gris | e-mail non vérifié dans *Settings → Emails*, ou dépôt privé sans l'option de contributions privées |
+| Run vert mais carré gris | e-mail retiré ou dé-vérifié dans *Settings → Emails* |
+| Plus aucun run depuis ~2 mois | règle des 60 jours → réactiver le workflow dans l'onglet Actions, ou poser le PAT |
 | `remote: Permission denied` | PAT expiré, ou permission *Contents* laissée en lecture seule |
-| Plus aucun run depuis des semaines | le secret `DAILY_PAT` a expiré → refais l'étape 2 puis l'étape 3 |
-| Le run ne part jamais à l'heure | normal, le cron GitHub est décalé quand la charge est haute |
+| Le run part avec 20 min de retard | normal, le cron GitHub se décale quand la charge est haute |
