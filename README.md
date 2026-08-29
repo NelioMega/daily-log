@@ -5,7 +5,7 @@ Petit journal alimenté automatiquement une fois par jour.
 | | |
 |---|---|
 | Dernière entrée | `2026-08-29 14:38 UTC` |
-| Entrées au total | **14** |
+| Entrées au total | **15** |
 | Jours couverts | **7** |
 
 Les entrées vivent dans [`logs/`](logs/), un fichier par mois. Installation : [SETUP.md](SETUP.md).
